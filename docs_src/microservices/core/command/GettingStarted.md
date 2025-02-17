@@ -60,7 +60,7 @@ Below is an example of the `MessageEnvelope` of command query response:
 The messages for formatted requests and responses are sharing a common base structure.
 The outermost JSON object represents the message envelope, which is used to convey metadata about request/response including `ApiVersion`, `RequestID`, `CorrelationID`...etc.
 
-The `Payload` field contains the base64-encoded response body.  
+The `Payload` field contains the edgex event and reading.  
 The `ErrorCode` field provides the indication of error.
 The `ErrorCode` will be 0 (no error) or 1 (indicating error) as the two enums for error conditions.
 When there is an error (with `ErrorCode` set to 1), then the payload contains a message string indicating more information about the error.
@@ -94,71 +94,87 @@ Example of querying device core commands by device name via messaging:
 ```
 
 2. Receive query response message from external MQTT broker on topic `edgex/commandquery/response`:
-```json
-{
-  "ReceivedTopic":"",
-  "CorrelationID":"14a42ea6-c394-41c3-8bcd-a29b9f5e6835",
-  "ApiVersion":"v2",
-  "RequestID":"e6e8a2f4-eb14-4649-9e2b-175247911369",
-  "ErrorCode":0,
-  "Payload":"eyJhcGlWZXJzaW9uIjoidjIiLCJyZXF1ZXN0SWQiOiJlNmU4YTJmNC1lYjE0LTQ2NDktOWUyYi0xNzUyNDc5MTEzNjkiLCJzdGF0dXNDb2RlIjoyMDAsImRldmljZUNvcmVDb21tYW5kIjp7ImRldmljZU5hbWUiOiJSYW5kb20tQm9vbGVhbi1EZXZpY2UiLCJwcm9maWxlTmFtZSI6IlJhbmRvbS1Cb29sZWFuLURldmljZSIsImNvcmVDb21tYW5kcyI6W3sibmFtZSI6IldyaXRlQm9vbFZhbHVlIiwic2V0Ijp0cnVlLCJwYXRoIjoiL2FwaS92Mi9kZXZpY2UvbmFtZS9SYW5kb20tQm9vbGVhbi1EZXZpY2UvV3JpdGVCb29sVmFsdWUiLCJ1cmwiOiJodHRwOi8vZWRnZXgtY29yZS1jb21tYW5kOjU5ODgyIiwicGFyYW1ldGVycyI6W3sicmVzb3VyY2VOYW1lIjoiQm9vbCIsInZhbHVlVHlwZSI6IkJvb2wifSx7InJlc291cmNlTmFtZSI6IkVuYWJsZVJhbmRvbWl6YXRpb25fQm9vbCIsInZhbHVlVHlwZSI6IkJvb2wifV19LHsibmFtZSI6IldyaXRlQm9vbEFycmF5VmFsdWUiLCJzZXQiOnRydWUsInBhdGgiOiIvYXBpL3YyL2RldmljZS9uYW1lL1JhbmRvbS1Cb29sZWFuLURldmljZS9Xcml0ZUJvb2xBcnJheVZhbHVlIiwidXJsIjoiaHR0cDovL2VkZ2V4LWNvcmUtY29tbWFuZDo1OTg4MiIsInBhcmFtZXRlcnMiOlt7InJlc291cmNlTmFtZSI6IkJvb2xBcnJheSIsInZhbHVlVHlwZSI6IkJvb2xBcnJheSJ9LHsicmVzb3VyY2VOYW1lIjoiRW5hYmxlUmFuZG9taXphdGlvbl9Cb29sQXJyYXkiLCJ2YWx1ZVR5cGUiOiJCb29sIn1dfSx7Im5hbWUiOiJCb29sIiwiZ2V0Ijp0cnVlLCJzZXQiOnRydWUsInBhdGgiOiIvYXBpL3YyL2RldmljZS9uYW1lL1JhbmRvbS1Cb29sZWFuLURldmljZS9Cb29sIiwidXJsIjoiaHR0cDovL2VkZ2V4LWNvcmUtY29tbWFuZDo1OTg4MiIsInBhcmFtZXRlcnMiOlt7InJlc291cmNlTmFtZSI6IkJvb2wiLCJ2YWx1ZVR5cGUiOiJCb29sIn1dfSx7Im5hbWUiOiJCb29sQXJyYXkiLCJnZXQiOnRydWUsInNldCI6dHJ1ZSwicGF0aCI6Ii9hcGkvdjIvZGV2aWNlL25hbWUvUmFuZG9tLUJvb2xlYW4tRGV2aWNlL0Jvb2xBcnJheSIsInVybCI6Imh0dHA6Ly9lZGdleC1jb3JlLWNvbW1hbmQ6NTk4ODIiLCJwYXJhbWV0ZXJzIjpbeyJyZXNvdXJjZU5hbWUiOiJCb29sQXJyYXkiLCJ2YWx1ZVR5cGUiOiJCb29sQXJyYXkifV19XX19",
-  "ContentType":"application/json",
-  "QueryParams":{}
-}
-```
 
-Base64-decoding the Payload:
+!!! edgey "EdgeX 4.0"
+    In EdgeX 4.0, base64 encoding is no longer applied by default to the payload. However, users can still enable base64 encoding by adding the environment variable to overwrite the default setting.
+
 ```json
 {
-  "apiVersion":"v2",
-  "requestId":"e6e8a2f4-eb14-4649-9e2b-175247911369",
-  "statusCode":200,
-  "deviceCoreCommand":{
-    "deviceName":"Random-Boolean-Device",
-    "profileName":"Random-Boolean-Device",
-    "coreCommands":[
-      {
-        "name":"WriteBoolValue",
-        "set":true,
-        "path":"/api/{{api_version}}/device/name/Random-Boolean-Device/WriteBoolValue",
-        "url":"http://edgex-core-command:59882",
-        "parameters":[
-          {"resourceName":"Bool", "valueType":"Bool"},
-          {"resourceName":"EnableRandomization_Bool","valueType":"Bool"}
-        ]
-      },
-      {
-        "name":"WriteBoolArrayValue",
-        "set":true,
-        "path":"/api/{{api_version}}/device/name/Random-Boolean-Device/WriteBoolArrayValue",
-        "url":"http://edgex-core-command:59882",
-        "parameters":[
-          {"resourceName":"BoolArray","valueType":"BoolArray"},
-          {"resourceName":"EnableRandomization_BoolArray","valueType":"Bool"}
-        ]
-      },
-      {
-        "name":"Bool",
-        "get":true,
-        "set":true,
-        "path":"/api/{{api_version}}/device/name/Random-Boolean-Device/Bool",
-        "url":"http://edgex-core-command:59882",
-        "parameters":[
-          {"resourceName":"Bool","valueType":"Bool"}
-        ]
-      },
-      {
-        "name":"BoolArray",
-        "get":true,
-        "set":true,
-        "path":"/api/{{api_version}}/device/name/Random-Boolean-Device/BoolArray",
-        "url":"http://edgex-core-command:59882",
-        "parameters":[
-          {"resourceName":"BoolArray","valueType":"BoolArray"}
-        ]
+   "apiVersion":"{{api_version}}",
+   "receivedTopic":"edgex/commandquery/response",
+   "correlationID":"14a42ea6-c394-41c3-8bcd-a29b9f5e6835",
+   "requestID":"e6e8a2f4-eb14-4649-9e2b-175247911369",
+   "errorCode":0,
+   "payload":{
+      "apiVersion":"{{api_version}}",
+      "requestId":"e6e8a2f4-eb14-4649-9e2b-175247911369",
+      "statusCode":200,
+      "deviceCoreCommand":{
+         "deviceName":"Random-Boolean-Device",
+         "profileName":"Random-Boolean-Device",
+         "coreCommands":[
+            {
+               "name":"WriteBoolValue",
+               "set":true,
+               "path":"/api/{{api_version}}/device/name/Random-Boolean-Device/WriteBoolValue",
+               "url":"http://edgex-core-command:59882",
+               "parameters":[
+                  {
+                     "resourceName":"Bool",
+                     "valueType":"Bool"
+                  },
+                  {
+                     "resourceName":"EnableRandomization_Bool",
+                     "valueType":"Bool"
+                  }
+               ]
+            },
+            {
+               "name":"WriteBoolArrayValue",
+               "set":true,
+               "path":"/api/{{api_version}}/device/name/Random-Boolean-Device/WriteBoolArrayValue",
+               "url":"http://edgex-core-command:59882",
+               "parameters":[
+                  {
+                     "resourceName":"BoolArray",
+                     "valueType":"BoolArray"
+                  },
+                  {
+                     "resourceName":"EnableRandomization_BoolArray",
+                     "valueType":"Bool"
+                  }
+               ]
+            },
+            {
+               "name":"Bool",
+               "get":true,
+               "set":true,
+               "path":"/api/{{api_version}}/device/name/Random-Boolean-Device/Bool",
+               "url":"http://edgex-core-command:59882",
+               "parameters":[
+                  {
+                     "resourceName":"Bool",
+                     "valueType":"Bool"
+                  }
+               ]
+            },
+            {
+               "name":"BoolArray",
+               "get":true,
+               "set":true,
+               "path":"/api/{{api_version}}/device/name/Random-Boolean-Device/BoolArray",
+               "url":"http://edgex-core-command:59882",
+               "parameters":[
+                  {
+                     "resourceName":"BoolArray",
+                     "valueType":"BoolArray"
+                  }
+               ]
+            }
+         ]
       }
-    ]
-  }
+   },
+   "contentType":"application/json"
 }
 ```
 
@@ -183,12 +199,52 @@ Example of querying all device core commands via messaging:
 2. Receive query response message from external MQTT broker on topic `edgex/commandquery/response`:
 ```json
 {
-  "ApiVersion":"v2",
-  "ContentType":"application/json",
-  "CorrelationID":"14a42ea6-c394-41c3-8bcd-a29b9f5e6835",
-  "RequestID":"e6e8a2f4-eb14-4649-9e2b-175247911369",
-  "ErrorCode":0,
-  "Payload":"..."
+   "apiVersion":"v3",
+   "receivedTopic":"edgex/commandquery/response",
+   "correlationID":"14a42ea6-c394-41c3-8bcd-a29b9f5e6835",
+   "requestID":"e6e8a2f4-eb14-4649-9e2b-175247911369",
+   "errorCode":0,
+   "payload":{
+      "apiVersion":"v3",
+      "requestId":"e6e8a2f4-eb14-4649-9e2b-175247911369",
+      "statusCode":200,
+      "totalCount":5,
+      "deviceCoreCommands":[
+         {
+            "deviceName":"Random-Boolean-Device",
+            "profileName":"Random-Boolean-Device",
+            "coreCommands":[
+               {
+                  "name":"BoolArray",
+                  "get":true,
+                  "set":true,
+                  "path":"/api/v3/device/name/Random-Boolean-Device/BoolArray",
+                  "url":"http://edgex-core-command:59882",
+                  "parameters":[
+                     {
+                        "resourceName":"BoolArray",
+                        "valueType":"BoolArray"
+                     }
+                  ]
+               },
+               {
+                  "name":"WriteBoolValue",
+                  "set":true,
+                  "path":"/api/v3/device/name/Random-Boolean-Device/WriteBoolValue",
+                  "url":"http://edgex-core-command:59882",
+                  "parameters":[
+                     {
+                        "resourceName":"Bool",
+                        "valueType":"Bool"
+                     },
+                     {
+                        "resourceName":"EnableRandomization_Bool",
+                        "valueType":"Bool"
+                     }
+                  ]
+               }
+   ..............
+   "contentType":"application/json"
 }
 ```
 
@@ -236,7 +292,7 @@ Example of making get command request via messaging:
 }
 ```
 
-Base64-decoding the Payload:
+The Payload will be as below:
 ```json
 {
   "apiVersion":"v2",
@@ -279,22 +335,39 @@ Example of making put command request via messaging:
 }
 ```
 
-The payload is the base64-encoding json struct:
-```json
-{"Bool": "false"}
-```
-
 2. Receive command response message from external MQTT broker on topic `edgex/command/response/#`
 ```json
 {
-  "ReceivedTopic":"edgex/command/response/Random-Boolean-Device/WriteBoolValue/set",
-  "CorrelationID":"14a42ea6-c394-41c3-8bcd-a29b9f5e6835",
-  "ApiVersion":"v2",
-  "RequestID":"e6e8a2f4-eb14-4649-9e2b-175247911369",
-  "ErrorCode":0,
-  "Payload":null,
-  "ContentType":"application/json",
-  "QueryParams":{}
+   "apiVersion":"{{api_version}}",
+   "receivedTopic":"edgex/command/response/Random-Boolean-Device/Bool/get",
+   "correlationID":"14a42ea6-c394-41c3-8bcd-a29b9f5e6835",
+   "requestID":"e6e8a2f4-eb14-4649-9e2b-175247911369",
+   "errorCode":0,
+   "payload":{
+      "apiVersion":"{{api_version}}",
+      "event":{
+         "apiVersion":"{{api_version}}",
+         "deviceName":"Random-Boolean-Device",
+         "id":"55eccd1b-d54b-4927-915e-67a787bf630f",
+         "origin":1739791220978547200,
+         "profileName":"Random-Boolean-Device",
+         "readings":[
+            {
+               "deviceName":"Random-Boolean-Device",
+               "id":"28e1b2b9-977d-4093-944c-d2b4df8c8040",
+               "origin":1739791220978547200,
+               "profileName":"Random-Boolean-Device",
+               "resourceName":"Bool",
+               "value":"true",
+               "valueType":"Bool"
+            }
+         ],
+         "sourceName":"Bool"
+      },
+      "requestId":"e6e8a2f4-eb14-4649-9e2b-175247911369",
+      "statusCode":200
+   },
+   "contentType":"application/json"
 }
 ```
 
